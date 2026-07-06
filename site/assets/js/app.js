@@ -25,18 +25,24 @@ const toggle = document.querySelector('[data-menu-toggle]');
 const nav = document.querySelector('[data-nav]');
 
 const nearbyNav = nav.querySelector('[href="#nearby"]');
-if (nearbyNav) nearbyNav.href = './nearby.html';
+if (nearbyNav) nearbyNav.setAttribute('href', './nearby.html');
+const contactNav = nav.querySelector('[href="#contact"]');
+if (contactNav) contactNav.setAttribute('href', './contact.html');
+
 const nearbySection = document.querySelector('#nearby');
 if (nearbySection) {
   nearbySection.style.cursor = 'pointer';
   nearbySection.setAttribute('role', 'link');
   nearbySection.setAttribute('tabindex', '0');
-  const openGuide = () => { window.location.href = './nearby.html'; };
+  const openGuide = () => window.location.assign('./nearby.html');
   nearbySection.addEventListener('click', openGuide);
   nearbySection.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' || event.key === ' ') openGuide();
   });
 }
+
+const contactButton = document.querySelector('#contact .button');
+if (contactButton) contactButton.setAttribute('href', './contact.html');
 
 window.addEventListener('scroll', () => header.classList.toggle('scrolled', window.scrollY > 24), { passive: true });
 
