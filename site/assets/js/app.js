@@ -24,6 +24,20 @@ const header = document.querySelector('[data-header]');
 const toggle = document.querySelector('[data-menu-toggle]');
 const nav = document.querySelector('[data-nav]');
 
+const nearbyNav = nav.querySelector('[href="#nearby"]');
+if (nearbyNav) nearbyNav.href = './nearby.html';
+const nearbySection = document.querySelector('#nearby');
+if (nearbySection) {
+  nearbySection.style.cursor = 'pointer';
+  nearbySection.setAttribute('role', 'link');
+  nearbySection.setAttribute('tabindex', '0');
+  const openGuide = () => { window.location.href = './nearby.html'; };
+  nearbySection.addEventListener('click', openGuide);
+  nearbySection.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') openGuide();
+  });
+}
+
 window.addEventListener('scroll', () => header.classList.toggle('scrolled', window.scrollY > 24), { passive: true });
 
 toggle.addEventListener('click', () => {
