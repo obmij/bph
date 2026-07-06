@@ -66,3 +66,11 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.14 });
 
 document.querySelectorAll('.reveal').forEach((node) => observer.observe(node));
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {
+      // The website remains fully usable if service-worker registration is unavailable.
+    });
+  });
+}
