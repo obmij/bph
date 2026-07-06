@@ -5,18 +5,30 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#526d80">
   <meta name="description" content="背包棧旅店 Backpackers' Hostel Taipei">
+  <link rel="canonical" href="https://obmij.github.io/bph/">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/icons/bph-icon.svg" type="image/svg+xml">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta property="og:title" content="BPH｜背包棧旅店">
+  <meta property="og:description" content="A multilingual Taipei stay guide for BPH Ximen and Changchun.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://obmij.github.io/bph/">
   <title>BPH｜背包棧旅店</title>
   <link rel="stylesheet" href="./assets/css/styles.css">
+  <link rel="stylesheet" href="./assets/css/accessibility.css">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"BPH Backpackers' Hostel","url":"https://obmij.github.io/bph/","logo":"https://obmij.github.io/bph/assets/icons/bph-icon.svg","email":"info@bph.com.tw"}</script>
   <script type="module" src="./assets/js/app.js"></script>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <header class="site-header" data-header>
     <a class="brand" href="#top" aria-label="BPH home">
       <span class="brand-mark">BPH</span>
       <span class="brand-name" data-i18n="brand.name">背包棧旅店</span>
     </a>
     <button class="menu-toggle" data-menu-toggle aria-expanded="false" aria-controls="main-nav">Menu</button>
-    <nav id="main-nav" class="main-nav" data-nav>
+    <nav id="main-nav" class="main-nav" data-nav aria-label="Primary navigation">
       <a href="#stays" data-i18n="nav.stays">旅店據點</a>
       <a href="#rooms" data-i18n="nav.rooms">客房介紹</a>
       <a href="#services" data-i18n="nav.services">設施服務</a>
@@ -35,10 +47,11 @@
     </label>
   </header>
 
-  <main id="top">
+  <main id="main-content">
+    <div id="top"></div>
     <section class="hero">
-      <div class="hero-orb orb-a"></div>
-      <div class="hero-orb orb-b"></div>
+      <div class="hero-orb orb-a" aria-hidden="true"></div>
+      <div class="hero-orb orb-b" aria-hidden="true"></div>
       <div class="hero-content reveal">
         <p class="eyebrow" data-i18n="hero.eyebrow">TAIPEI · XIMEN · CHANGCHUN</p>
         <h1 data-i18n="hero.title">住進台北的日常</h1>
@@ -58,13 +71,13 @@
       </div>
       <div class="location-grid">
         <article class="location-card card-blue">
-          <span class="card-index">01</span>
+          <span class="card-index" aria-hidden="true">01</span>
           <h3 data-i18n="stays.ximenTitle">西門店</h3>
           <p data-i18n="stays.ximenCopy">鄰近西門町，適合想深入城市脈動的旅人。</p>
           <a href="./ximen.html" data-i18n="common.discover">了解更多 →</a>
         </article>
         <article class="location-card card-green">
-          <span class="card-index">02</span>
+          <span class="card-index" aria-hidden="true">02</span>
           <h3 data-i18n="stays.changchunTitle">長春店</h3>
           <p data-i18n="stays.changchunCopy">在交通便利與安靜休息之間取得平衡。</p>
           <a href="./changchun.html" data-i18n="common.discover">了解更多 →</a>
@@ -88,9 +101,9 @@
         <h2 data-i18n="services.title">簡單入住，完整照顧</h2>
       </div>
       <div class="service-grid">
-        <article><span>01</span><h3 data-i18n="services.oneTitle">便利交通</h3><p data-i18n="services.oneCopy">快速串聯捷運、商圈與城市景點。</p></article>
-        <article><span>02</span><h3 data-i18n="services.twoTitle">共享空間</h3><p data-i18n="services.twoCopy">讓旅人自然交流，也能保有自己的節奏。</p></article>
-        <article><span>03</span><h3 data-i18n="services.threeTitle">旅遊支援</h3><p data-i18n="services.threeCopy">提供在地資訊與住宿期間所需協助。</p></article>
+        <article><span aria-hidden="true">01</span><h3 data-i18n="services.oneTitle">便利交通</h3><p data-i18n="services.oneCopy">快速串聯捷運、商圈與城市景點。</p></article>
+        <article><span aria-hidden="true">02</span><h3 data-i18n="services.twoTitle">共享空間</h3><p data-i18n="services.twoCopy">讓旅人自然交流，也能保有自己的節奏。</p></article>
+        <article><span aria-hidden="true">03</span><h3 data-i18n="services.threeTitle">旅遊支援</h3><p data-i18n="services.threeCopy">提供在地資訊與住宿期間所需協助。</p></article>
       </div>
     </section>
 

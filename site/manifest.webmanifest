@@ -1,0 +1,19 @@
+{
+  "name": "BPH Backpackers' Hostel Taipei",
+  "short_name": "BPH Taipei",
+  "description": "Multilingual information for BPH Ximen and Changchun in Taipei.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f1f0eb",
+  "theme_color": "#526d80",
+  "lang": "zh-Hant",
+  "icons": [
+    {
+      "src": "./assets/icons/bph-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
