@@ -1,0 +1,155 @@
+name: Validate and deploy redesigned BPH website
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate pages, links and assets
+        shell: bash
+        run: |
+          python - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          from urllib.parse import unquote, urlsplit
+          import sys
+
+          root = Path.cwd()
+          pages = [
+              'index.html', 'ximen.html', 'changchun.html',
+              'travel.html', 'booking.html', 'contact.html',
+          ]
+          required = pages + [
+              '.nojekyll',
+              'assets/css/site-1.css', 'assets/css/site-2.css',
+              'assets/css/site-3.css', 'assets/css/site-4.css',
+              'assets/js/site.js',
+          ]
+          errors = []
+
+          class Parser(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.refs = []
+                  self.has_title = False
+                  self.has_viewport = False
+
+              def handle_starttag(self, tag, attrs):
+                  values = dict(attrs)
+                  if tag == 'title':
+                      self.has_title = True
+                  if tag == 'meta' and (values.get('name') or '').lower() == 'viewport':
+                      self.has_viewport = True
+                  for key in ('href', 'src'):
+                      if values.get(key):
+                          self.refs.append((key, values[key]))
+
+          for name in required:
+              path = root / name
+              if not path.exists():
+                  errors.append(f'missing required file: {name}')
+              elif path.is_file() and name != '.nojekyll' and path.stat().st_size == 0:
+                  errors.append(f'empty required file: {name}')
+
+          for name in pages:
+              page = root / name
+              if not page.exists():
+                  continue
+              parser = Parser()
+              parser.feed(page.read_text(encoding='utf-8'))
+              if not parser.has_title:
+                  errors.append(f'{name}: missing title')
+              if not parser.has_viewport:
+                  errors.append(f'{name}: missing viewport')
+              for attribute, value in parser.refs:
+                  if value.startswith(('#', 'http:', 'https:', 'mailto:', 'tel:', 'data:', 'javascript:')):
+                      continue
+                  local = unquote(urlsplit(value).path)
+                  target = page.parent / local
+                  if target.is_dir():
+                      target = target / 'index.html'
+                  if not target.exists():
+                      errors.append(f'{name}: broken {attribute} reference {value}')
+
+          images = sorted((root / 'assets/images').glob('*'))
+          if len(images) != 22:
+              errors.append(f'expected 22 production images, found {len(images)}')
+          for image in images:
+              if image.stat().st_size == 0:
+                  errors.append(f'empty image: {image}')
+
+          forbidden = [
+              'www.bph.com.tw', 'dd-cdn.multiscreensite.com',
+              'dp-cdn.multiscreensite.com', 'irp.cdn-website.com',
+              'irt-cdn.multiscreensite.com', 'lirp.cdn-website.com',
+              's3.amazonaws.com', 'static-cdn.dwhitelabel.com',
+              'static.cdn-website.com', 'www.googletagmanager.com',
+              '.payload',
+          ]
+          for name in forbidden:
+              if (root / name).exists():
+                  errors.append(f'legacy or temporary path exists: {name}')
+
+          if errors:
+              print('Validation failed:', file=sys.stderr)
+              for error in errors:
+                  print(f'- {error}', file=sys.stderr)
+              raise SystemExit(1)
+
+          print('Static validation passed: 6 pages and 22 images.')
+          PY
+          node --check assets/js/site.js
+
+      - name: HTTP smoke test
+        shell: bash
+        run: |
+          python -m http.server 8000 >/tmp/bph-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill $server_pid' EXIT
+          sleep 2
+          for path in index.html ximen.html changchun.html travel.html booking.html contact.html assets/css/site-1.css assets/js/site.js assets/images/hero.jpg; do
+            curl --fail --silent --show-error "http://127.0.0.1:8000/$path" >/dev/null
+          done
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload website
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy website
+        id: deployment
+        uses: actions/deploy-pages@v4
