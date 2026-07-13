@@ -1,6 +1,8 @@
 import './quick-services.js';
 import { translations } from './translations.js';
 
+document.documentElement.classList.add('js');
+
 const languageSelect = document.querySelector('[data-language]');
 const supported = Object.keys(translations);
 const stored = localStorage.getItem('bph-language');
