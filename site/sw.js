@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bph-v1';
+const CACHE_NAME = 'bph-v2';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -15,11 +15,13 @@ const CORE_ASSETS = [
   './assets/css/nearby.css',
   './assets/css/content-pages.css',
   './assets/css/accessibility.css',
+  './assets/css/quick-services.css',
   './assets/js/app.js',
   './assets/js/translations.js',
   './assets/js/location.js',
   './assets/js/nearby.js',
   './assets/js/content-pages.js',
+  './assets/js/quick-services.js',
   './assets/icons/bph-icon.svg'
 ];
 
