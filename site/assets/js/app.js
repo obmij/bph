@@ -1,3 +1,4 @@
+import './quick-services.js';
 import { translations } from './translations.js';
 
 const languageSelect = document.querySelector('[data-language]');
