@@ -1,4 +1,4 @@
-name: Deploy BPH to GitHub Pages
+name: Validate and deploy BPH to GitHub Pages
 
 on:
   push:
@@ -15,7 +15,127 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate production website
+        shell: bash
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+
+          import re
+          import sys
+          from html.parser import HTMLParser
+          from pathlib import Path
+          from urllib.parse import unquote, urlsplit
+
+          root = Path.cwd()
+          required = [
+              'index.html', 'ximen.html', 'changchun.html', 'nearby.html',
+              'contact.html', 'news.html', 'privacy.html', '404.html',
+              'offline.html', 'manifest.webmanifest', 'robots.txt',
+              'sitemap.xml', 'sw.js', '.nojekyll',
+              'assets/css/styles.css', 'assets/css/accessibility.css',
+              'assets/css/location.css', 'assets/css/nearby.css',
+              'assets/css/content-pages.css', 'assets/css/quick-services.css',
+              'assets/js/app.js', 'assets/js/translations.js',
+              'assets/js/location.js', 'assets/js/nearby.js',
+              'assets/js/content-pages.js', 'assets/js/quick-services.js',
+              'assets/icons/bph-icon.svg',
+          ]
+
+          errors: list[str] = []
+          for name in required:
+              path = root / name
+              if not path.exists():
+                  errors.append(f'missing required file: {name}')
+              elif path.is_file() and path.stat().st_size == 0 and name != '.nojekyll':
+                  errors.append(f'empty required file: {name}')
+
+          class Parser(HTMLParser):
+              def __init__(self) -> None:
+                  super().__init__(convert_charrefs=True)
+                  self.refs: list[tuple[str, str]] = []
+                  self.has_title = False
+                  self.has_viewport = False
+
+              def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+                  values = dict(attrs)
+                  if tag == 'title':
+                      self.has_title = True
+                  if tag == 'meta' and (values.get('name') or '').lower() == 'viewport':
+                      self.has_viewport = True
+                  for attribute in ('href', 'src'):
+                      value = values.get(attribute)
+                      if value:
+                          self.refs.append((attribute, value))
+
+          ignored = ('http:', 'https:', 'mailto:', 'tel:', 'data:', 'javascript:')
+          for page in sorted(root.glob('*.html')):
+              parser = Parser()
+              try:
+                  parser.feed(page.read_text(encoding='utf-8'))
+              except Exception as exc:
+                  errors.append(f'{page.name}: unreadable HTML: {exc}')
+                  continue
+              if not parser.has_title:
+                  errors.append(f'{page.name}: missing title')
+              if not parser.has_viewport:
+                  errors.append(f'{page.name}: missing viewport')
+              for attribute, value in parser.refs:
+                  value = value.strip()
+                  if not value or value.startswith('#') or value.lower().startswith(ignored):
+                      continue
+                  parsed = urlsplit(value)
+                  local = unquote(parsed.path)
+                  if not local:
+                      continue
+                  target = root / local.lstrip('/') if local.startswith('/') else page.parent / local
+                  if target.is_dir():
+                      target = target / 'index.html'
+                  if not target.exists():
+                      errors.append(f'{page.name}: broken {attribute} reference {value}')
+
+          module_pattern = re.compile(r"(?:import|from)\s*(?:\([^)]*\)|[^'\"]*)?['\"](\.[^'\"]+)['\"]")
+          for script in sorted((root / 'assets/js').glob('*.js')):
+              text = script.read_text(encoding='utf-8')
+              for module in module_pattern.findall(text):
+                  target = (script.parent / module).resolve()
+                  if not target.exists():
+                      errors.append(f'{script.relative_to(root)}: missing module {module}')
+
+          sw = (root / 'sw.js').read_text(encoding='utf-8') if (root / 'sw.js').exists() else ''
+          for asset in re.findall(r"['\"](\./[^'\"]+)['\"]", sw):
+              target = root / asset[2:]
+              if not target.exists():
+                  errors.append(f'sw.js: missing cached asset {asset}')
+
+          forbidden_roots = [
+              'www.bph.com.tw', 'dd-cdn.multiscreensite.com',
+              'dp-cdn.multiscreensite.com', 'irp.cdn-website.com',
+              'irt-cdn.multiscreensite.com', 'lirp.cdn-website.com',
+              's3.amazonaws.com', 'static-cdn.dwhitelabel.com',
+              'static.cdn-website.com', 'www.googletagmanager.com',
+          ]
+          for name in forbidden_roots:
+              if (root / name).exists():
+                  errors.append(f'legacy mirror directory must not exist: {name}')
+
+          if errors:
+              print('Website validation failed:', file=sys.stderr)
+              for error in errors:
+                  print(f'- {error}', file=sys.stderr)
+              raise SystemExit(1)
+
+          print(f'Website validation passed: {len(list(root.glob("*.html")))} HTML pages checked.')
+          PY
+
   deploy:
+    needs: validate
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -27,7 +147,7 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload site artifact
+      - name: Upload production website
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
