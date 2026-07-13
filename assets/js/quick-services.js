@@ -98,7 +98,7 @@ const LOCATIONS = {
 function currentLanguage() {
   const selected = document.querySelector('[data-language]')?.value;
   const stored = localStorage.getItem('bph-language');
-  const language = selected || stored || document.documentElement.lang || 'zh-TW';
+  const language = stored || selected || document.documentElement.lang || 'zh-TW';
   if (SERVICE_LABELS[language]) return language;
   if (language.toLowerCase().startsWith('zh')) return 'zh-TW';
   return Object.keys(SERVICE_LABELS).find((code) => language.toLowerCase().startsWith(code.toLowerCase())) || 'en';
@@ -250,3 +250,4 @@ const languageSelect = document.querySelector('[data-language]');
 if (languageSelect) {
   languageSelect.addEventListener('change', () => requestAnimationFrame(refreshLanguage));
 }
+requestAnimationFrame(refreshLanguage);
